@@ -51,16 +51,16 @@ private:
 	float Throttle;
 	float SteeringThrow;	
 	
-	UPROPERTY(Replicated)
-	FVector ReplicatedLocation;	
-	UPROPERTY(Replicated)
-	FRotator ReplicatedRotation;	
+	UPROPERTY(ReplicatedUsing=OnRep_ReplicatedTransform)
+	FTransform ReplicatedTransform;
+
+	UFUNCTION()
+	void OnRep_ReplicatedTransform();
 	
 	// Calculate car Velocity
 	void CalculateCarVelocity(float DeltaTime);
 	void UpdateLocationFromVelocity(float DeltaTime);
 	void ApplyRotation(float DeltaTime, FQuat& RotationDelta);
-	void SynchTransform();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

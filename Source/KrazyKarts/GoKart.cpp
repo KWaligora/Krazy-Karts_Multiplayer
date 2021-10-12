@@ -14,13 +14,22 @@ AGoKart::AGoKart()
 void AGoKart::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if(HasAuthority())
+	{
+		NetUpdateFrequency = 5;
+	}
 }
 
 void AGoKart::GetLifetimeReplicatedProps( TArray< FLifetimeProperty > & OutLifetimeProps ) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME( AGoKart, ReplicatedLocation);
-	DOREPLIFETIME( AGoKart, ReplicatedRotation);
+	DOREPLIFETIME( AGoKart, ReplicatedTransform);
+}
+
+void AGoKart::OnRep_ReplicatedTransform()
+{
+	SetActorTransform(ReplicatedTransform);
 }
 
 // Calculate car Velocity
@@ -51,20 +60,6 @@ void AGoKart::ApplyRotation(float DeltaTime, FQuat& RotationDelta)
 	float RotationAngle = DeltaLocation / MinTurningRadius * SteeringThrow;
 	RotationDelta = FQuat(GetActorUpVector(), RotationAngle);
 	Velocity = RotationDelta.RotateVector(Velocity);
-}
-// Set Location on Server and get on clients
-void AGoKart::SynchTransform()
-{
-	if(HasAuthority())
-	{
-		ReplicatedLocation = GetActorLocation();
-		ReplicatedRotation = GetActorRotation();
-	}
-	else
-	{
-		SetActorLocation(ReplicatedLocation);
-		SetActorRotation(ReplicatedRotation);
-	}
 }
 
 void AGoKart::MoveForward(float Value)
@@ -104,7 +99,9 @@ void AGoKart::Tick(float DeltaTime)
 	AddActorWorldRotation(RotationDelta, true);
 	DrawDebugString(GetWorld(), FVector(0,0,100), UEnum::GetValueAsString(GetLocalRole()), this, FColor::White, DeltaTime);
 
-	SynchTransform();
+	if(HasAuthority())	
+		ReplicatedTransform = GetActorTransform();
+	
 }
 
 // Called to bind functionality to input
