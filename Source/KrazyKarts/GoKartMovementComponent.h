@@ -9,7 +9,7 @@
 USTRUCT()
 struct FGoKartMove
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
 	float Throttle;
@@ -39,16 +39,19 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void SimulateMove(const FGoKartMove &Move);
+	void SimulateMove(const FGoKartMove& Move);
+
+	FVector GetVelocity() { return Velocity; };
+	void SetVelocity(FVector Val) { Velocity = Val; };
+
+	void SetThrottle(float Val) { Throttle = Val; };
+	void SetSteeringThrow(float Val) { SteeringThrow = Val; };
+
+	FGoKartMove GetLastMove() { return LastMove; };
+
+private:
 	FGoKartMove CreateMove(float DeltaTime);
 
-	FVector GetVelocity() {return Velocity;}
-	void SetVelocity(FVector Value) {Velocity = Value;}
-	
-	void SetThrottle(float Value) {Throttle = Value;}	
-	void SetSteeringThrow(float Value) {SteeringThrow = Value;}
-	
-private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 
@@ -75,9 +78,11 @@ private:
 	// Higher means more rolling resistance.
 	UPROPERTY(EditAnywhere)
 	float RollingResistanceCoefficient = 0.015;
-	
+
 	FVector Velocity;
-	
+
 	float Throttle;
 	float SteeringThrow;
+
+	FGoKartMove LastMove;
 };

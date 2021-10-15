@@ -2,6 +2,7 @@
 
 #include "GoKartMovementComponent.h"
 
+
 // Sets default values for this component's properties
 UGoKartMovementComponent::UGoKartMovementComponent()
 {
@@ -28,7 +29,11 @@ void UGoKartMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	if (GetOwnerRole() == ROLE_AutonomousProxy || GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		LastMove = CreateMove(DeltaTime);
+		SimulateMove(LastMove);
+	}
 }
 
 void UGoKartMovementComponent::SimulateMove(const FGoKartMove& Move)
@@ -54,13 +59,13 @@ FGoKartMove UGoKartMovementComponent::CreateMove(float DeltaTime)
 	Move.SteeringThrow = SteeringThrow;
 	Move.Throttle = Throttle;
 	Move.Time = GetWorld()->TimeSeconds;
-	
+
 	return Move;
 }
 
 FVector UGoKartMovementComponent::GetAirResistance()
 {
-	return - Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
+	return -Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
 }
 
 FVector UGoKartMovementComponent::GetRollingResistance()
@@ -70,10 +75,11 @@ FVector UGoKartMovementComponent::GetRollingResistance()
 	return -Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
 }
 
+
 void UGoKartMovementComponent::ApplyRotation(float DeltaTime, float Steering)
 {
 	float DeltaLocation = FVector::DotProduct(GetOwner()->GetActorForwardVector(), Velocity) * DeltaTime;
-	float RotationAngle =  DeltaLocation / MinTurningRadius * Steering;
+	float RotationAngle = DeltaLocation / MinTurningRadius * Steering;
 	FQuat RotationDelta(GetOwner()->GetActorUpVector(), RotationAngle);
 
 	Velocity = RotationDelta.RotateVector(Velocity);
@@ -92,4 +98,3 @@ void UGoKartMovementComponent::UpdateLocationFromVelocity(float DeltaTime)
 		Velocity = FVector::ZeroVector;
 	}
 }
-

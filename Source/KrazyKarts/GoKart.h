@@ -13,28 +13,29 @@ class KRAZYKARTS_API AGoKart : public APawn
 {
 	GENERATED_BODY()
 
-public:
+	public:
 	// Sets default values for this pawn's properties
 	AGoKart();
 
-protected:
+	protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:
+	public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	
-private:
+	private:
+
 	void MoveForward(float Value);
-	void MoveRight(float Value);	
+	void MoveRight(float Value);
 
 	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementComponent* MovementComponent;
-
 	UPROPERTY(VisibleAnywhere)
 	UGoKartMovementReplicator* MovementReplicator;
 };
