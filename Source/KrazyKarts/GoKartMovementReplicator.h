@@ -13,7 +13,7 @@ struct FGoKartState
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
-	FTransform Tranform;
+	FTransform Transform;
 
 	UPROPERTY()
 	FVector Velocity;
@@ -44,6 +44,8 @@ class KRAZYKARTS_API UGoKartMovementReplicator : public UActorComponent
 
 	void UpdateServerState(const FGoKartMove& Move);
 
+	void ClientTick(float DeltaTime);
+	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FGoKartMove Move);
 
@@ -52,9 +54,15 @@ class KRAZYKARTS_API UGoKartMovementReplicator : public UActorComponent
 
 	UFUNCTION()
 	void OnRep_ServerState();
+	void AutonomusProxy_OnRep_ServerState();
+	void SimulatedProxy_OnRep_ServerState();
 
 	TArray<FGoKartMove> UnacknowledgedMoves;
 
+	float ClientTimeSinceUpdate;
+	float ClientTimeBetweenLastUpdates;
+	FVector ClientStartLocation;
+	
 	UPROPERTY()
 	UGoKartMovementComponent* MovementComponent;
 };
