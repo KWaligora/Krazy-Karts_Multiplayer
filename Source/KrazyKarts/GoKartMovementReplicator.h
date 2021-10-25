@@ -22,29 +22,50 @@ struct FGoKartState
 	FGoKartMove LastMove;
 };
 
+struct FHermiteCubicSpline
+{
+	FVector StartLocation;
+	FVector StartDerivative;
+	FVector TargetLocation;
+	FVector TargetDerivative;
+
+	FVector InterpolateLocation(float LerpRatio)
+	{
+		return FMath::CubicInterp(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+	FVector InterpolateDerivative(float LerpRatio)
+	{
+		return FMath::CubicInterpDerivative(StartLocation, StartDerivative, TargetLocation, TargetDerivative, LerpRatio);
+	}
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class KRAZYKARTS_API UGoKartMovementReplicator : public UActorComponent
 {
 	GENERATED_BODY()
 
-	public:	
+public:	
 	// Sets default values for this component's properties
 	UGoKartMovementReplicator();
 
-	protected:
+protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	public:	
+public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	private:
+private:
 	void ClearAcknowledgeMoves(FGoKartMove LastMove);
 
 	void UpdateServerState(const FGoKartMove& Move);
+	void InterpolateRotation(float LerpRatio);
 
 	void ClientTick(float DeltaTime);
+	FHermiteCubicSpline CreateSpline();
+	void InterpolateLocation(FHermiteCubicSpline &Spline, float LerpRatio);
+	float VelocityToDerivative();
 	
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FGoKartMove Move);
@@ -54,15 +75,22 @@ class KRAZYKARTS_API UGoKartMovementReplicator : public UActorComponent
 
 	UFUNCTION()
 	void OnRep_ServerState();
-	void AutonomusProxy_OnRep_ServerState();
+	void AutonomousProxy_OnRep_ServerState();
 	void SimulatedProxy_OnRep_ServerState();
 
 	TArray<FGoKartMove> UnacknowledgedMoves;
 
 	float ClientTimeSinceUpdate;
 	float ClientTimeBetweenLastUpdates;
-	FVector ClientStartLocation;
+	FTransform ClientStartTransform;
+	FVector ClientStartVelocity;
 	
 	UPROPERTY()
 	UGoKartMovementComponent* MovementComponent;
+
+	UPROPERTY()
+	USceneComponent* MeshOffsetRoot;
+	
+	UFUNCTION(BlueprintCallable)
+	void SetMeshOffsetRoot(USceneComponent* Root) { MeshOffsetRoot = Root; }
 };
